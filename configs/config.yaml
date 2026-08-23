@@ -1,0 +1,94 @@
+# ============================================================
+# Configuración del Proyecto
+# Análisis Estadístico de la Felicidad Estudiantil - UST
+# ============================================================
+
+project:
+  name: "Análisis estadístico e inteligente de la felicidad estudiantil"
+  institution: "Universidad Santo Tomás"
+  version: "0.1.0"
+
+# ------------------------------------------------------------
+# Estructura de la encuesta
+# ------------------------------------------------------------
+survey:
+  scale_name: "Escala de Felicidad Estudiantil"
+  scale_type: "Likert"
+  scale_range: [1, 5]  # 1 = Totalmente en desacuerdo, 5 = Totalmente de acuerdo
+  num_items: 29
+
+  # Dimensiones de la escala
+  dimensions:
+    - id: "CP"
+      name: "Crecimiento Personal"
+      items: []  # Se completarán al cargar la estructura de la encuesta
+
+    - id: "PV"
+      name: "Propósito de Vida"
+      items: []
+
+    - id: "DE"
+      name: "Dominio del Entorno"
+      items: []
+
+    - id: "EI"
+      name: "Entorno Institucional"
+      items: []
+
+    - id: "RP"
+      name: "Relaciones Positivas"
+      items: []
+
+    - id: "AU"
+      name: "Autonomía"
+      items: []
+
+# ------------------------------------------------------------
+# Variables demográficas / agrupadoras
+# ------------------------------------------------------------
+grouping_variables:
+  - "semestre"
+  - "programa"
+  - "facultad"
+  - "jornada"
+  - "genero"
+  - "edad"
+
+# ------------------------------------------------------------
+# Rutas del proyecto
+# ------------------------------------------------------------
+paths:
+  data_raw: "data/raw"
+  data_processed: "data/processed"
+  data_external: "data/external"
+  reports: "reports"
+  figures: "reports/figures"
+  configs: "configs"
+
+# ------------------------------------------------------------
+# Parámetros de análisis
+# ------------------------------------------------------------
+analysis:
+  # Consistencia interna
+  cronbach_alpha_threshold: 0.70
+
+  # Correlaciones
+  correlation_method: "spearman"  # spearman o pearson
+
+  # Clustering
+  clustering:
+    method: "kmeans"
+    max_clusters: 8
+    random_state: 42
+
+  # Significancia estadística
+  significance_level: 0.05
+
+# ------------------------------------------------------------
+# Parámetros de visualización
+# ------------------------------------------------------------
+visualization:
+  style: "seaborn-v0_8-whitegrid"
+  palette: "viridis"
+  figure_dpi: 150
+  save_format: "png"
