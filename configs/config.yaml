@@ -12,47 +12,63 @@ project:
 # Estructura de la encuesta
 # ------------------------------------------------------------
 survey:
-  scale_name: "Escala de Felicidad Estudiantil"
+  scale_name: "Escala de Bienestar Psicológico de Ryff"
   scale_type: "Likert"
-  scale_range: [1, 5]  # 1 = Totalmente en desacuerdo, 5 = Totalmente de acuerdo
+  scale_range: [1, 6]  # 1 = Totalmente en desacuerdo, 6 = Totalmente de acuerdo
   num_items: 29
+  reference: "Díaz, D., Rodríguez-Carvajal, R., Blanco, A., et al. (2006). Adaptación española de las escalas de bienestar psicológico de Ryff. Psicothema, 18(3), 572-577."
 
-  # Dimensiones de la escala
+  # Dimensiones de la escala (Ryff, adaptación española de Díaz et al., 2006)
   dimensions:
-    - id: "CP"
-      name: "Crecimiento Personal"
-      items: []  # Se completarán al cargar la estructura de la encuesta
+    - id: "SA"
+      name: "Autoaceptación"
+      num_items: 4
+      items: [1, 7, 17, 24]  # Ítems que pertenecen a esta dimensión
 
-    - id: "PV"
-      name: "Propósito de Vida"
-      items: []
-
-    - id: "DE"
-      name: "Dominio del Entorno"
-      items: []
-
-    - id: "EI"
-      name: "Entorno Institucional"
-      items: []
-
-    - id: "RP"
+    - id: "PR"
       name: "Relaciones Positivas"
-      items: []
+      num_items: 5
+      items: [2, 8, 12, 22, 25]
 
     - id: "AU"
       name: "Autonomía"
-      items: []
+      num_items: 6
+      items: [3, 9, 13, 18, 23, 29]
+
+    - id: "DE"
+      name: "Dominio del Entorno"
+      num_items: 5
+      items: [5, 10, 11, 14, 19]
+
+    - id: "PV"
+      name: "Propósito de Vida"
+      num_items: 5
+      items: [4, 6, 15, 16, 20]
+
+    - id: "CP"
+      name: "Crecimiento Personal"
+      num_items: 4
+      items: [21, 26, 27, 28]
+
+  # Ítems invertidos (respuestas negativas = mayor bienestar)
+  # Estos ítems deben ser recodificados antes del análisis
+  reverse_items: [2, 4, 5, 8, 9, 13, 19, 22, 23, 26]
 
 # ------------------------------------------------------------
 # Variables demográficas / agrupadoras
 # ------------------------------------------------------------
 grouping_variables:
-  - "semestre"
-  - "programa"
-  - "facultad"
-  - "jornada"
   - "genero"
   - "edad"
+  - "pais_residencia"
+  - "departamento_residencia"
+  - "estrato_socioeconomico"
+  - "nivel_formacion"
+  - "modalidad"
+  - "semestre"
+  - "sede_seccional"
+  - "programa_formacion"
+  - "cau"
 
 # ------------------------------------------------------------
 # Rutas del proyecto
@@ -92,3 +108,44 @@ visualization:
   palette: "viridis"
   figure_dpi: 150
   save_format: "png"
+
+# ------------------------------------------------------------
+# Google Forms API
+# ------------------------------------------------------------
+google_forms:
+  credentials_file: "configs/google_credentials.json"
+  form_id: ""  # Se configura según la encuesta
+  spreadsheet_id: ""  # Google Sheets donde se guardan las respuestas
+  scopes:
+    - "https://www.googleapis.com/auth/forms.responses.readonly"
+    - "https://www.googleapis.com/auth/spreadsheets.readonly"
+
+# ------------------------------------------------------------
+# Notificaciones por correo
+# ------------------------------------------------------------
+email:
+  enabled: true
+  smtp_server: "smtp.gmail.com"
+  smtp_port: 587
+  sender_email: ""  # Configurar
+  sender_password: ""  # Configurar (usar contraseña de aplicación)
+  recipients:
+    - ""  # Configurar destinatarios
+  subject_prefix: "[Felicidad Estudiantil UST]"
+  
+# ------------------------------------------------------------
+# Orquestador
+# ------------------------------------------------------------
+orchestrator:
+  # Modo de ejecución: "manual", "automatic", "both"
+  mode: "both"
+  
+  # Frecuencia de verificación automática (en minutos)
+  check_interval_minutes: 30
+  
+  # Horario de ejecución automática (si se usa schedule)
+  schedule_time: "08:00"
+  
+  # Guardar histórico de resultados
+  save_history: true
+  history_file: "data/processed/analysis_history.json"
