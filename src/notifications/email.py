@@ -205,7 +205,8 @@ RESULTADOS POR DIMENSIÓN
 """
 
         for dim in stats.get("dimensions", []):
-            body += f"• {dim['name']}: {dim['mean']:.2f}\n"
+            dim_name = dim.get('name', dim.get('dimension', 'Dimensión'))
+            body += f"• {dim_name}: {dim['mean']:.2f}\n"
 
         body += """
 RECOMENDACIONES
@@ -213,8 +214,9 @@ RECOMENDACIONES
 """
         # Generar recomendaciones básicas
         for dim in stats.get("dimensions", []):
+            dim_name = dim.get('name', dim.get('dimension', 'Dimensión'))
             if dim["mean"] < 3.5:
-                body += f"• Fortalecer la dimensión '{dim['name']}' (puntaje: {dim['mean']:.2f})\n"
+                body += f"• Fortalecer la dimensión '{dim_name}' (puntaje: {dim['mean']:.2f})\n"
 
         body += """
 El reporte completo se encuentra adjunto a este correo.
