@@ -11,6 +11,7 @@ from typing import Optional
 import yaml
 import schedule
 import pandas as pd
+import numpy as np
 
 from src.data.collector import GoogleFormsCollector, load_local_csv
 from src.data.processor import DataProcessor
@@ -78,6 +79,20 @@ class AgentOrchestrator:
 
     def _save_history(self, entry: dict):
         """Guarda una entrada en el histórico."""
+        import json
+
+        class CustomEncoder(json.JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, (bool, np.bool_)):
+                    return bool(obj)
+                if isinstance(obj, np.integer):
+                    return int(obj)
+                if isinstance(obj, np.floating):
+                    return float(obj)
+                if isinstance(obj, np.ndarray):
+                    return obj.tolist()
+                return super().default(obj)
+
         history_path = self.config.get("orchestrator", {}).get(
             "history_file", "data/processed/analysis_history.json"
         )
@@ -87,7 +102,7 @@ class AgentOrchestrator:
         self.history.append(entry)
 
         with open(history_path, "w", encoding="utf-8") as f:
-            json.dump(self.history, f, indent=2, ensure_ascii=False)
+            json.dump(self.history, f, indent=2, ensure_ascii=False, cls=CustomEncoder)
 
     def run_full_analysis(
         self,

@@ -259,9 +259,10 @@ class DataProcessor:
         """Extrae el número del ítem del nombre de la columna."""
         import re
 
-        # Buscar patrones como "1", "Ítem 1", "Q1", "Pregunta 1"
+        # Buscar patrones como "1", "1. Texto...", "Ítem 1", "Q1", "Pregunta 1"
         patterns = [
-            r"^(\d+)$",
+            r"^(\d+)\.\s",  # "1. Cuando repaso..."
+            r"^(\d+)$",     # Solo el número
             r"[Íi]tem\s*(\d+)",
             r"[Qq](\d+)",
             r"[Pp]regunta\s*(\d+)",

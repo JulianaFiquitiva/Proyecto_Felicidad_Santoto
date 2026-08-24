@@ -100,7 +100,14 @@ class ClusteringAnalysis:
         Returns:
             DataFrame con etiquetas de cluster
         """
-        X = self._prepare_features(df)
+        # Preparar features y obtener índices válidos
+        score_columns = [f"score_{d['id']}" for d in self.dimensions]
+        score_columns = [col for col in score_columns if col in df.columns]
+
+        df_clean = df[score_columns].dropna()
+        valid_indices = df_clean.index
+
+        X = self.scaler.fit_transform(df_clean.values)
 
         if n_clusters is None:
             optimal_result = self.find_optimal_clusters(df)
@@ -116,10 +123,13 @@ class ClusteringAnalysis:
         )
 
         df_result = df.copy()
-        df_result["cluster"] = self.model.fit_predict(X)
+        df_result["cluster"] = np.nan
+
+        # Asignar clusters solo a filas válidas
+        df_result.loc[valid_indices, "cluster"] = self.model.fit_predict(X)
 
         # Calcular silueta
-        silhouette = silhouette_score(X, df_result["cluster"])
+        silhouette = silhouette_score(X, df_result.loc[valid_indices, "cluster"])
         logger.info(f"Clustering ajustado: {n_clusters} clusters, silueta={silhouette:.4f}")
 
         return df_result
@@ -143,8 +153,11 @@ class ClusteringAnalysis:
         score_columns = [f"score_{d['id']}" for d in self.dimensions]
         score_columns = [col for col in score_columns if col in df.columns]
 
-        for cluster_id in sorted(df["cluster"].unique()):
-            cluster_data = df[df["cluster"] == cluster_id]
+        # Filtrar NaN en cluster
+        df_valid = df.dropna(subset=["cluster"])
+
+        for cluster_id in sorted(df_valid["cluster"].unique()):
+            cluster_data = df_valid[df_valid["cluster"] == cluster_id]
 
             # Centroides (promedios)
             centroid = {}

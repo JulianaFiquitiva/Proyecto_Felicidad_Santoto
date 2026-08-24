@@ -114,8 +114,8 @@ visualization:
 # ------------------------------------------------------------
 google_forms:
   credentials_file: "configs/google_credentials.json"
-  form_id: ""  # Se configura según la encuesta
-  spreadsheet_id: ""  # Google Sheets donde se guardan las respuestas
+  form_id: "1AMzmYQGEXF-wbZBtQI6Sw6gtmsNwvXz8POH_KZ00poQ"  # ID del formulario Google Forms
+  spreadsheet_id: "1iC5p-Jr9SP8oRxGh8cclNDwNeNvLY_QxCXFtkhCJ2rA"  # Google Sheets con respuestas
   scopes:
     - "https://www.googleapis.com/auth/forms.responses.readonly"
     - "https://www.googleapis.com/auth/spreadsheets.readonly"
@@ -127,10 +127,10 @@ email:
   enabled: true
   smtp_server: "smtp.gmail.com"
   smtp_port: 587
-  sender_email: ""  # Configurar
-  sender_password: ""  # Configurar (usar contraseña de aplicación)
+  sender_email: "julkarem03@gmail.com"
+  sender_password: "twukmeowxxnnpobo"  # Contraseña de aplicación Gmail
   recipients:
-    - ""  # Configurar destinatarios
+    - "julkarem03@gmail.com"  # Agregar más destinatarios si es necesario
   subject_prefix: "[Felicidad Estudiantil UST]"
   
 # ------------------------------------------------------------
