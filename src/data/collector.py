@@ -56,14 +56,14 @@ class GoogleFormsCollector:
 
     def extract_responses(
         self,
-        range_name: str = "Respuestas de formulario!A:ZZ",
+        range_name: str = None,
         max_results: Optional[int] = None,
     ) -> pd.DataFrame:
         """
         Extrae las respuestas de la encuesta.
 
         Args:
-            range_name: Rango de celdas a extraer
+            range_name: Rango de celdas a extraer (None = toda la hoja)
             max_results: Número máximo de resultados (None = todos)
 
         Returns:
@@ -73,6 +73,19 @@ class GoogleFormsCollector:
             self._authenticate()
 
         try:
+            # Si no se especifica rango, obtener toda la hoja
+            if range_name is None:
+                # Primero obtener el nombre de la hoja
+                spreadsheet = self.service.spreadsheets().get(
+                    spreadsheetId=self.spreadsheet_id
+                ).execute()
+                sheets = spreadsheet.get('sheets', [])
+                if sheets:
+                    sheet_name = sheets[0]['properties']['title']
+                    range_name = f"'{sheet_name}'"
+                else:
+                    range_name = "'Respuestas de formulario'"
+
             result = (
                 self.service.spreadsheets()
                 .values()

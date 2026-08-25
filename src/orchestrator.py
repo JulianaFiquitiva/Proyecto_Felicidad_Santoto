@@ -459,21 +459,33 @@ class AgentOrchestrator:
 
         logger.info(f"Iniciando monitoreo autónomo (cada {interval} minutos)")
 
+        # Obtener timestamp de última respuesta actual para evitar análisis innecesario
+        last_response_timestamp = self.collector.get_last_response_timestamp()
+        if last_response_timestamp:
+            self.last_check = last_response_timestamp
+            logger.info(f"Última respuesta conocida: {last_response_timestamp}")
+
         def check_and_analyze():
-            if self.check_for_new_responses():
-                logger.info("Nuevas respuestas detectadas, ejecutando análisis autónomo...")
-                self.run_full_analysis(
-                    send_notification=True,
-                    use_autonomous_agent=True,
-                )
-                self.last_check = datetime.now()
-            else:
-                logger.debug("No hay nuevas respuestas")
+            try:
+                if self.check_for_new_responses():
+                    logger.info("Nuevas respuestas detectadas, ejecutando análisis autónomo...")
+                    self.run_full_analysis(
+                        send_notification=True,
+                        use_autonomous_agent=True,
+                    )
+                    # Actualizar timestamp de última respuesta
+                    self.last_check = self.collector.get_last_response_timestamp()
+                    logger.info(f"Análisis completado. Próxima verificación en {interval} minutos.")
+                else:
+                    logger.info(f"No hay nuevas respuestas. Próxima verificación en {interval} minutos.")
+            except Exception as e:
+                logger.error(f"Error en verificación: {e}")
 
         # Programar verificación periódica
         schedule.every(interval).minutes.do(check_and_analyze)
 
         # Ejecutar inmediatamente
+        logger.info("Ejecutando primera verificación...")
         check_and_analyze()
 
         # Mantener ejecutándose
