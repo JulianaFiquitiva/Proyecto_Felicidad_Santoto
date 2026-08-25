@@ -176,20 +176,7 @@ class AutonomousAgent:
             for c in global_corr
         ]
 
-        # Clustering
-        df_clustered = cluster_analyzer.fit_clusters(df_processed)
-        cluster_profiles = cluster_analyzer.get_cluster_profiles(df_clustered)
-        results["clusters"] = [
-            {
-                "id": p.cluster_id,
-                "size": p.size,
-                "percentage": p.percentage,
-                "label": p.label,
-            }
-            for p in cluster_profiles
-        ]
-
-        # Factores
+        # Regresión lineal múltiple
         regression_results = factor_analyzer.regression_analysis(df_processed)
         results["regression"] = {
             "r_squared": regression_results.get("r_squared", 0),
@@ -203,6 +190,44 @@ class AutonomousAgent:
                 for f in regression_results.get("factors", [])
             ],
         }
+
+        # Regresión logística (predecir bienestar bajo)
+        logistic_results = factor_analyzer.logistic_regression(df_processed)
+        results["logistic_regression"] = logistic_results
+
+        # Regresión Ridge
+        ridge_results = factor_analyzer.ridge_regression(df_processed)
+        results["ridge_regression"] = ridge_results
+
+        # Regresión Lasso
+        lasso_results = factor_analyzer.lasso_regression(df_processed)
+        results["lasso_regression"] = lasso_results
+
+        # Regresión polinómica
+        poly_results = factor_analyzer.polynomial_regression(df_processed)
+        results["polynomial_regression"] = poly_results
+
+        # Regresión stepwise
+        stepwise_results = factor_analyzer.stepwise_regression(df_processed)
+        results["stepwise_regression"] = stepwise_results
+
+        # ANOVA por género si existe la columna
+        if "genero" in df_processed.columns:
+            anova_results = factor_analyzer.anova_comparison(df_processed, "genero")
+            results["anova_gender"] = anova_results
+
+        # Clustering
+        df_clustered = cluster_analyzer.fit_clusters(df_processed)
+        cluster_profiles = cluster_analyzer.get_cluster_profiles(df_clustered)
+        results["clusters"] = [
+            {
+                "id": p.cluster_id,
+                "size": p.size,
+                "percentage": p.percentage,
+                "label": p.label,
+            }
+            for p in cluster_profiles
+        ]
 
         results["total_responses"] = data.get("total_rows", len(df_processed))
 
