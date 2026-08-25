@@ -130,7 +130,8 @@ email:
   sender_email: "julkarem03@gmail.com"
   sender_password: "twukmeowxxnnpobo"  # Contraseña de aplicación Gmail
   recipients:
-    - "julkarem03@gmail.com"  # Agregar más destinatarios si es necesario
+    - "julkarem03@gmail.com"
+    - "luisa.martinezr17@gmail.com"
   subject_prefix: "[Felicidad Estudiantil UST]"
   
 # ------------------------------------------------------------
@@ -149,3 +150,14 @@ orchestrator:
   # Guardar histórico de resultados
   save_history: true
   history_file: "data/processed/analysis_history.json"
+
+# ------------------------------------------------------------
+# Inteligencia Artificial - Google Gemini
+# ------------------------------------------------------------
+ai:
+  enabled: true
+  provider: "gemini"
+  model: "gemini-3.6-flash"  # Modelo actualizado
+  api_key: ""  # Configurar con tu API key de Google Gemini
+  temperature: 0.7  # Creatividad (0.0 = preciso, 1.0 = creativo)
+  max_tokens: 2000

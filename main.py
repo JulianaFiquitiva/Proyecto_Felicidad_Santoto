@@ -6,10 +6,14 @@ Uso:
     python main.py --mode manual  # Conecta con Google Forms
     python main.py --mode auto    # Monitoreo automático
     python main.py --mode scheduled --time 08:00
+    python main.py --mode status  # Estado del agente autónomo
+    python main.py --mode insights # Insights del agente
+    python main.py --mode patterns # Patrones detectados
     python main.py --dashboard    # Ejecuta el dashboard
 """
 
 import argparse
+import json
 import sys
 
 from src.orchestrator import AgentOrchestrator
@@ -19,23 +23,29 @@ logger = get_logger(__name__)
 
 
 def run_analysis(args):
-    """Ejecuta el análisis."""
+    """Ejecuta el análisis con agente autónomo."""
     orchestrator = AgentOrchestrator()
+
+    use_agent = not args.no_agent
 
     if args.file:
         logger.info(f"Modo manual - Archivo: {args.file}")
+        logger.info(f"Agente autónomo: {'ACTIVADO' if use_agent else 'DESACTIVADO'}")
         results = orchestrator.run_full_analysis(
             data_source="file",
             file_path=args.file,
             send_notification=not args.no_email,
             generate_report=not args.no_report,
+            use_autonomous_agent=use_agent,
         )
     else:
         logger.info("Modo manual - Conectando con Google Forms")
+        logger.info(f"Agente autónomo: {'ACTIVADO' if use_agent else 'DESACTIVADO'}")
         results = orchestrator.run_full_analysis(
             data_source="api",
             send_notification=not args.no_email,
             generate_report=not args.no_report,
+            use_autonomous_agent=use_agent,
         )
 
     return results
@@ -57,17 +67,69 @@ def run_dashboard():
     subprocess.run(["streamlit", "run", dashboard_path])
 
 
+def show_status():
+    """Muestra el estado del agente autónomo."""
+    orchestrator = AgentOrchestrator()
+    status = orchestrator.get_agent_status()
+
+    print("\n" + "=" * 60)
+    print("ESTADO DEL AGENTE AUTÓNOMO")
+    print("=" * 60)
+    print(f"Estado: {status.get('status', 'desconocido')}")
+    print(f"Último análisis: {status.get('last_analysis', 'nunca')}")
+    print(f"Total de análisis: {status.get('total_analyses', 0)}")
+    print(f"Entradas en memoria: {status.get('memory_size', 0)}")
+    print(f"Decisiones tomadas: {status.get('decisions_count', 0)}")
+    print("=" * 60)
+
+
+def show_insights():
+    """Muestra los insights del agente."""
+    orchestrator = AgentOrchestrator()
+    insights = orchestrator.get_agent_insights()
+
+    print("\n" + "=" * 60)
+    print("INSIGHTS DEL AGENTE AUTÓNOMO")
+    print("=" * 60)
+
+    if not insights:
+        print("No hay insights disponibles (primero ejecuta un análisis)")
+    else:
+        for i, insight in enumerate(insights, 1):
+            print(f"{i}. {insight}")
+
+    print("=" * 60)
+
+
+def show_patterns():
+    """Muestra los patrones detectados."""
+    orchestrator = AgentOrchestrator()
+    patterns = orchestrator.get_agent_patterns()
+
+    print("\n" + "=" * 60)
+    print("PATRONES DETECTADOS POR EL AGENTE")
+    print("=" * 60)
+
+    if not patterns:
+        print("No hay patrones detectados (se necesitan al menos 3 análisis)")
+    else:
+        for p in patterns:
+            print(f"- {p.get('message', 'Patrón detectado')}")
+
+    print("=" * 60)
+
+
 def main():
     """Función principal."""
     parser = argparse.ArgumentParser(
-        description="Agente de Análisis de Bienestar Psicológico Estudiantil - UST"
+        description="Agente Autónomo de Análisis de Bienestar Psicológico Estudiantil - UST"
     )
 
     # Modos de ejecución
     mode_group = parser.add_mutually_exclusive_group(required=True)
     mode_group.add_argument(
         "--mode",
-        choices=["manual", "auto", "scheduled"],
+        choices=["manual", "auto", "scheduled", "status", "insights", "patterns"],
         help="Modo de ejecución del análisis",
     )
     mode_group.add_argument(
@@ -81,11 +143,16 @@ def main():
     parser.add_argument("--time", type=str, default="08:00", help="Hora para análisis programado")
     parser.add_argument("--no-email", action="store_true", help="No enviar notificación por correo")
     parser.add_argument("--no-report", action="store_true", help="No generar reporte PDF")
+    parser.add_argument(
+        "--no-agent",
+        action="store_true",
+        help="Deshabilitar agente autónomo (usar análisis tradicional)",
+    )
 
     args = parser.parse_args()
 
     logger.info("=" * 60)
-    logger.info("Sistema de Análisis de Bienestar Psicológico Estudiantil")
+    logger.info("Agente Autónomo de Análisis de Bienestar Psicológico Estudiantil")
     logger.info("Universidad Santo Tomás")
     logger.info("=" * 60)
 
@@ -94,14 +161,31 @@ def main():
             run_dashboard()
         elif args.mode == "manual":
             results = run_analysis(args)
-            logger.info(f"Análisis completado. Estado: {results.get('status')}")
-            logger.info(f"Total de respuestas: {results.get('total_responses')}")
+            if results:
+                logger.info(f"Análisis completado. Estado: {results.get('status')}")
+                logger.info(f"Total de respuestas: {results.get('total_responses')}")
+
+                # Mostrar resumen del agente autónomo si está disponible
+                if "autonomous_agent" in results:
+                    agent_summary = results["autonomous_agent"].get("summary", {})
+                    if agent_summary:
+                        logger.info("--- Resumen del Agente Autónomo ---")
+                        logger.info(f"Decisiones tomadas: {agent_summary.get('decisions_made', 0)}")
+                        logger.info(f"Acciones ejecutadas: {agent_summary.get('actions_executed', 0)}")
+                        logger.info(f"Reporte IA generado: {agent_summary.get('ai_generated', False)}")
+
         elif args.mode == "auto":
             orchestrator = AgentOrchestrator()
             orchestrator.start_automatic_monitoring()
         elif args.mode == "scheduled":
             orchestrator = AgentOrchestrator()
             orchestrator.start_scheduled_analysis(args.time)
+        elif args.mode == "status":
+            show_status()
+        elif args.mode == "insights":
+            show_insights()
+        elif args.mode == "patterns":
+            show_patterns()
 
     except KeyboardInterrupt:
         logger.info("Operación cancelada por el usuario")

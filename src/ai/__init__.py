@@ -1,0 +1,21 @@
+"""
+Módulo de Inteligencia Artificial del Sistema de Análisis de Bienestar.
+
+Componentes:
+- AIInterpreter: Interpreta resultados con Google Gemini
+- AgentMemory: Memoria para aprendizaje continuo
+- DecisionEngine: Toma de decisiones autónomas
+- AutonomousAgent: Agente principal autónomo
+"""
+
+from src.ai.interpreter import AIInterpreter
+from src.ai.memory import AgentMemory
+from src.ai.decision_engine import DecisionEngine
+from src.ai.agent import AutonomousAgent
+
+__all__ = [
+    "AIInterpreter",
+    "AgentMemory",
+    "DecisionEngine",
+    "AutonomousAgent",
+]

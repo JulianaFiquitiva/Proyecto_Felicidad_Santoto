@@ -77,6 +77,10 @@ desktop.ini
 *secrets*
 *token*
 
+# Config files with secrets
+configs/config.yaml
+configs/*.local
+
 # Data files (keep structure, ignore actual data for privacy)
 data/raw/*
 data/processed/*
