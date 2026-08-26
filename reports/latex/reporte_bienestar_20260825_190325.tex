@@ -1,0 +1,334 @@
+
+\documentclass[12pt,a4paper]{article}
+
+% Paquetes
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{amsmath}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+
+% Colores personalizados
+\definecolor{ustblue}{RGB}{0,51,102}
+\definecolor{ustgray}{RGB}{128,128,128}
+\definecolor{sigreen}{RGB}{39,174,96}
+\definecolor{sired}{RGB}{231,76,60}
+\definecolor{siyellow}{RGB}{241,196,15}
+
+% Configuración de hipervínculos
+\hypersetup{
+    colorlinks=true,
+    linkcolor=ustblue,
+    urlcolor=ustblue,
+    citecolor=ustblue
+}
+
+% Encabezados y pies de página
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{ustgray}{Análisis de Bienestar Psicológico}}
+\fancyhead[R]{\textcolor{ustgray}{\today}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% Títulos
+\titleformat{\section}{\Large\bfseries\color{ustblue}}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries\color{ustblue!80}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{ustblue!60}}{\thesubsubsection}{1em}{}
+
+\begin{document}
+
+% Portada
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+
+{\Huge\bfseries\textcolor{ustblue}{Análisis de Bienestar Psicológico Estudiantil}\par}
+
+\vspace{1cm}
+
+{\Large\textcolor{ustgray}{Universidad Santo Tomás}\par}
+
+\vspace{0.5cm}
+
+{\large\textcolor{ustgray}{Universidad Santo Tomás}\par}
+
+\vspace{2cm}
+
+{\large\textcolor{ustgray}{Fecha: 25 de August de 2026}\par}
+
+\vspace{1cm}
+
+\begin{tikzpicture}
+\draw[fill=ustblue!10, draw=ustblue, rounded corners=5pt] (0,0) rectangle (12,4);
+\node[align=center] at (6,3) {\textbf{\large Resumen Ejecutivo}};
+\node[align=center] at (6,2) {Muestra: 281 estudiantes};
+\node[align=center] at (6,1.2) {Bienestar Global: 4.52 $\pm$ 0.65};
+\end{tikzpicture}
+
+\vfill
+
+{\small\textcolor{ustgray}{Generado automáticamente por el Sistema de Análisis de Bienestar Estudiantil}\par}
+\end{titlepage}
+
+% Índice
+\tableofcontents
+\newpage
+
+% ============================================================
+% SECCIÓN 1: INTRODUCCIÓN
+% ============================================================
+\section{Introducción}
+
+\subsection{Contexto}
+El bienestar psicológico de los estudiantes universitarios es un factor determinante 
+en su rendimiento académico, retención y desarrollo integral. Este informe presenta 
+un análisis completo de 281 respuestas obtenidas a través 
+de la Escala de Bienestar Psicológico de Ryff.
+
+\subsection{Objetivos}
+\begin{itemize}
+    \item Evaluar el nivel de bienestar psicológico de los estudiantes
+    \item Identificar dimensiones con mayores áreas de oportunidad
+    \item Detectar patrones y perfiles de estudiantes
+    \item Proponer intervenciones basadas en evidencia
+\end{itemize}
+
+\subsection{Metodología}
+Se utilizó la Escala de Bienestar Psicológico de Ryff (29 ítems), adaptada al español 
+por Díaz et al. (2006). Las respuestas se codificaron en una escala Likert de 1 a 6, 
+donde valores más altos indican mayor bienestar.
+
+% ============================================================
+% SECCIÓN 2: RESULTADOS
+% ============================================================
+\section{Resultados}
+
+\subsection{Estadísticas Descriptivas}
+
+\begin{table}[H]
+\centering
+\caption{Estadísticas descriptivas por dimensión del bienestar}
+\label{tab:descriptivas}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+\textbf{Dimensión} & \textbf{N} & \textbf{Media} & \textbf{DE} & \textbf{Mín} & \textbf{Máx} & \textbf{Interpretación} \\
+\midrule
+Autoaceptación & 268 & 4.72 & 0.93 & 1 & 6 & \textcolor{siyellow}{Medio} \\
+Relaciones Positivas & 268 & 4.28 & 0.89 & 2 & 6 & \textcolor{siyellow}{Medio} \\
+Autonomía & 268 & 4.34 & 0.84 & 2 & 6 & \textcolor{siyellow}{Medio} \\
+Dominio del Entorno & 268 & 4.35 & 0.78 & 2 & 6 & \textcolor{siyellow}{Medio} \\
+Propósito de Vida & 268 & 4.66 & 0.81 & 2 & 6 & \textcolor{siyellow}{Medio} \\
+Crecimiento Personal & 268 & 4.79 & 0.79 & 2 & 6 & \textcolor{siyellow}{Medio} \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Índice Global de Bienestar}
+
+El bienestar global promedio es de \textbf{4.52} sobre 6.00 
+(Desviación Estándar = 0.65).
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    bar width=15pt,
+    width=0.8\textwidth,
+    height=8cm,
+    ylabel={Puntuación Promedio},
+    symbolic x coords={Aut, Rel, Aut, Dom, Pro, Cre},
+    xtick=data,
+    ymin=0, ymax=6,
+    nodes near coords,
+    nodes near coords align={vertical},
+]
+\addplot[fill=ustblue] coordinates {
+(Aut, 4.72)
+(Rel, 4.28)
+(Aut, 4.34)
+(Dom, 4.35)
+(Pro, 4.66)
+(Cre, 4.79)
+
+};
+\end{axis}
+\end{tikzpicture}
+\caption{Puntuaciones promedio por dimensión del bienestar}
+\label{fig:dimensiones}
+\end{figure}
+
+
+\subsection{Análisis de Correlaciones}
+
+\begin{table}[H]
+\centering
+\caption{Correlaciones con el bienestar global}
+\label{tab:correlaciones}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Dimensión} & \textbf{Correlación} & \textbf{p-valor} \\
+\midrule
+Autoaceptación & 0.8166 & 0.0000 *** \\
+Relaciones Positivas & 0.6439 & 0.0000 *** \\
+Autonomía & 0.7351 & 0.0000 *** \\
+Dominio del Entorno & 0.8350 & 0.0000 *** \\
+Propósito de Vida & 0.8389 & 0.0000 *** \\
+Crecimiento Personal & 0.6874 & 0.0000 *** \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsection{Análisis de Regresión}
+
+\subsubsection{Regresión Lineal Múltiple}
+El modelo de regresión lineal múltiple explicó el \textbf{100.0\%} 
+de la varianza en el bienestar global (R² = 1.0000).
+
+\begin{table}[H]
+\centering
+\caption{Coeficientes de regresión estandarizados}
+\label{tab:regresion}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Variable} & \textbf{β} & \textbf{p-valor} & \textbf{Significativo} \\
+\midrule
+Autoaceptación & 0.1546 & 0.0000 & Sí \\
+Relaciones Positivas & 0.1487 & 0.0000 & Sí \\
+Autonomía & 0.1394 & 0.0000 & Sí \\
+Propósito de Vida & 0.1345 & 0.0000 & Sí \\
+Crecimiento Personal & 0.1319 & 0.0000 & Sí \\
+Dominio del Entorno & 0.1299 & 0.0000 & Sí \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsection{Análisis de Clustering}
+
+Se identificaron \textbf{2} perfiles diferenciados de estudiantes:
+
+\begin{table}[H]
+\centering
+\caption{Perfiles de estudiantes identificados}
+\label{tab:clusters}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Perfil} & \textbf{Cantidad} & \textbf{Porcentaje} & \textbf{Descripción} \\
+\midrule
+Perfil 0 & 137 & 48.8\% & Autoaceptación - Crecimiento Personal \\
+Perfil 1 & 131 & 46.6\% & Crecimiento Personal - Autoaceptación \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsubsection{Regresión Logística}
+
+El modelo logístico clasificó a los estudiantes con \textbf{100.0\%} 
+de precisión (AUC = 1.0000).
+
+\textbf{Odds Ratios:}
+
+\begin{itemize}
+    \item Autoaceptación: OR = 0.1821 (reduce la probabilidad)
+    \item Relaciones Positivas: OR = 0.4373 (reduce la probabilidad)
+    \item Autonomía: OR = 0.2553 (reduce la probabilidad)
+    \item Dominio del Entorno: OR = 0.4991 (reduce la probabilidad)
+    \item Propósito de Vida: OR = 0.2379 (reduce la probabilidad)
+    \item Crecimiento Personal: OR = 0.3382 (reduce la probabilidad)
+
+\end{itemize}
+
+
+\subsubsection{Selección de Variables (Stepwise)}
+
+El análisis stepwise seleccionó \textbf{6} 
+variables como predictoras significativas:
+
+\begin{itemize}
+    \item score_PV
+    \item score_PR
+    \item score_CP
+    \item score_AU
+    \item score_SA
+    \item score_DE
+
+\end{itemize}
+
+
+% ============================================================
+% SECCIÓN 3: CONCLUSIONES
+% ============================================================
+\section{Conclusiones y Recomendaciones}
+
+\subsection{Principales Hallazgos}
+
+\begin{itemize}
+    \item El bienestar global es \textcolor{siyellow}{\textbf{MEDIO}}, existiendo 
+    oportunidades de mejora en varias dimensiones.
+    \item Se recomienda implementar programas focalizados en las dimensiones más débiles.
+\end{itemize}
+
+\subsection{Recomendaciones Específicas}
+
+Basado en el análisis, la dimensión con mayor área de oportunidad es 
+\textbf{Relaciones Positivas} (Media = 4.28).
+
+\begin{enumerate}
+    \item \textbf{Diagnóstico profundo}: Realizar grupos focales para entender las 
+    causas raíz de esta dimensión.
+    \item \textbf{Intervención diseñada}: Crear programas específicos para mejorar 
+    esta dimensión.
+    \item \textbf{Seguimiento}: Implementar mediciones periódicas para evaluar el impacto.
+    \item \textbf{Capacitación}: Entrenar al personal docente en estrategias de apoyo.
+\end{enumerate}
+
+% ============================================================
+% ANEXOS
+% ============================================================
+\newpage
+\appendix
+\section{Anexos}
+
+\subsection{Metodología Detallada}
+La Escala de Bienestar Psicológico de Ryff (1989) evalúa seis dimensiones:
+\begin{enumerate}
+    \item \textbf{Autoaceptación}: Actitud positiva hacia uno mismo
+    \item \textbf{Relaciones Positivas}: Conexiones cálidas con otros
+    \item \textbf{Autonomía}: Independencia y auto-regulación
+    \item \textbf{Dominio del Entorno}: Gestión efectiva del entorno
+    \item \textbf{Propósito de Vida}: Sentido y dirección en la vida
+    \item \textbf{Crecimiento Personal}: Desarrollo continuo
+\end{enumerate}
+
+\subsection{Ítems Invertidos}
+Los siguientes ítems fueron recodificados: 2, 4, 5, 8, 9, 13, 19, 22, 23, 26.
+
+\vfill
+
+\begin{center}
+\textcolor{ustgray}{\small Documento generado automáticamente el 25/08/2026 19:03}
+\end{center}
+
+\end{document}

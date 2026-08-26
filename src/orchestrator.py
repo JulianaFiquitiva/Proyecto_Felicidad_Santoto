@@ -20,10 +20,15 @@ from src.analysis.statistics import StatisticalAnalysis
 from src.analysis.correlations import CorrelationAnalysis
 from src.analysis.clustering import ClusteringAnalysis
 from src.analysis.factors import FactorAnalysis
+from src.analysis.time_series import TimeSeriesAnalyzer
+from src.analysis.advanced_clustering import AdvancedClusteringAnalyzer
+from src.analysis.predictive_models import PredictiveModelAnalyzer
 from src.reports.generator import ReportGenerator
+from src.reports.latex_generator import LaTeXReportGenerator
 from src.notifications.email import EmailNotifier
 from src.ai.interpreter import AIInterpreter
 from src.ai.agent import AutonomousAgent
+from src.visualization.interactive_dashboard import InteractiveDashboard
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -50,8 +55,15 @@ class AgentOrchestrator:
         self.clustering_analysis = ClusteringAnalysis(self.config)
         self.factor_analysis = FactorAnalysis(self.config)
         self.report_generator = ReportGenerator(self.config)
+        self.latex_generator = LaTeXReportGenerator(self.config)
         self.email_notifier = EmailNotifier(self.config.get("email", {}))
         self.ai_interpreter = AIInterpreter(self.config)
+
+        # Inicializar componentes avanzados
+        self.time_series = TimeSeriesAnalyzer(self.config)
+        self.advanced_clustering = AdvancedClusteringAnalyzer(self.config)
+        self.predictive_models = PredictiveModelAnalyzer(self.config)
+        self.dashboard = InteractiveDashboard(self.config)
 
         # Inicializar agente autónomo
         self.autonomous_agent = AutonomousAgent(self.config)
@@ -238,6 +250,16 @@ class AgentOrchestrator:
             logger.info("Generando reporte PDF...")
             pdf_path = self._generate_report(results, results.get("clusters", []))
 
+        # Generar reporte LaTeX
+        logger.info("Generando reporte LaTeX...")
+        latex_path = self.latex_generator.generate_full_report(results)
+        results["latex_report"] = latex_path
+
+        # Generar dashboard interactivo
+        logger.info("Generando dashboard interactivo...")
+        dashboard_path = self.dashboard.generate_full_dashboard(results)
+        results["interactive_dashboard"] = dashboard_path
+
         # Enviar notificación si se solicita
         if send_notification:
             logger.info("Enviando notificación...")
@@ -324,6 +346,14 @@ class AgentOrchestrator:
             ],
         }
 
+        # Regresión logística
+        logistic_results = self.factor_analysis.logistic_regression(df_processed)
+        results["logistic_regression"] = logistic_results
+
+        # Regresión stepwise
+        stepwise_results = self.factor_analysis.stepwise_regression(df_processed)
+        results["stepwise_regression"] = stepwise_results
+
         # Clustering
         df_clustered = self.clustering_analysis.fit_clusters(df_processed)
         cluster_profiles = self.clustering_analysis.get_cluster_profiles(df_clustered)
@@ -336,6 +366,23 @@ class AgentOrchestrator:
             }
             for p in cluster_profiles
         ]
+
+        # Clustering avanzado (DBSCAN)
+        dbscan_results = self.advanced_clustering.dbscan_clustering(df_processed)
+        results["dbscan_clustering"] = dbscan_results
+
+        # Clustering jerárquico
+        hierarchical_results = self.advanced_clustering.hierarchical_clustering(df_processed)
+        results["hierarchical_clustering"] = hierarchical_results
+
+        # Modelos predictivos
+        predictive_results = self.predictive_models.compare_all_models(df_processed)
+        results["predictive_models"] = predictive_results
+
+        # Series de tiempo (si hay columna de fecha)
+        if "timestamp" in df_processed.columns or "Fecha" in df_processed.columns:
+            time_series_results = self.time_series.analyze_trend(df_processed)
+            results["time_series"] = time_series_results
 
         # Guardar datos procesados
         output_path = os.path.join(
@@ -351,6 +398,12 @@ class AgentOrchestrator:
         if generate_report:
             pdf_path = self._generate_report(results, cluster_profiles)
 
+        # Generar reporte LaTeX
+        latex_path = self.latex_generator.generate_full_report(results)
+
+        # Generar dashboard interactivo
+        dashboard_path = self.dashboard.generate_full_dashboard(results, df_clustered)
+
         # Interpretación IA
         ai_interpretation = self.ai_interpreter.interpret_results(results)
         ai_summary = self.ai_interpreter.generate_executive_summary(results)
@@ -359,6 +412,8 @@ class AgentOrchestrator:
         results["ai_interpretation"] = ai_interpretation
         results["ai_summary"] = ai_summary
         results["ai_recommendations"] = ai_recommendations
+        results["latex_report"] = latex_path
+        results["interactive_dashboard"] = dashboard_path
 
         # Enviar notificación
         if send_notification:
