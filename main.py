@@ -9,12 +9,16 @@ Uso:
     python main.py --mode status  # Estado del agente autónomo
     python main.py --mode insights # Insights del agente
     python main.py --mode patterns # Patrones detectados
+    python main.py --mode chat    # Chatbot interactivo
     python main.py --dashboard    # Ejecuta el dashboard
 """
 
 import argparse
 import json
 import sys
+import os
+
+import yaml
 
 from src.orchestrator import AgentOrchestrator
 from src.utils.logger import get_logger
@@ -119,6 +123,83 @@ def show_patterns():
     print("=" * 60)
 
 
+def run_chatbot():
+    """Ejecuta el chatbot interactivo."""
+    from src.ai.chatbot import WellbeingChatbot
+
+    print("\n" + "=" * 60)
+    print("BIENVENIDO A BIENESTARBOT")
+    print("Tu asistente de análisis de bienestar psicológico")
+    print("=" * 60)
+    print("Escribe 'salir' para terminar la conversación")
+    print("=" * 60 + "\n")
+
+    # Inicializar chatbot
+    config = yaml.safe_load(open("configs/config.yaml", encoding="utf-8"))
+    chatbot = WellbeingChatbot(config)
+
+    # Intentar cargar último análisis
+    try:
+        orchestrator = AgentOrchestrator()
+        history = orchestrator.history
+        if history:
+            last_analysis = history[-1]
+            chatbot.load_analysis_results(last_analysis)
+            print("[OK] Último análisis cargado en el chatbot\n")
+    except Exception as e:
+        print(f"[!] No se pudo cargar el análisis: {e}\n")
+
+    # Mostrar preguntas sugeridas
+    suggestions = chatbot.get_suggested_questions()
+    print("PREGUNTAS SUGERIDAS:")
+    for i, q in enumerate(suggestions[:5], 1):
+        print(f"  {i}. {q}")
+    print()
+
+    # Bucle de conversación
+    while True:
+        try:
+            user_input = input("Tú: ").strip()
+
+            if not user_input:
+                continue
+
+            if user_input.lower() in ["salir", "exit", "quit", "adiós"]:
+                print("\n¡Hasta luego! Que tengas un excelente día.")
+                break
+
+            if user_input.lower() == "ayuda":
+                print("\nComandos disponibles:")
+                print("  - Escribe cualquier pregunta sobre bienestar")
+                print("  - 'sugerir' - Ver preguntas sugeridas")
+                print("  - 'limpiar' - Limpiar historial")
+                print("  - 'salir' - Terminar conversación\n")
+                continue
+
+            if user_input.lower() == "sugerir":
+                suggestions = chatbot.get_suggested_questions()
+                print("\nPREGUNTAS SUGERIDAS:")
+                for i, q in enumerate(suggestions, 1):
+                    print(f"  {i}. {q}")
+                print()
+                continue
+
+            if user_input.lower() == "limpiar":
+                chatbot.clear_history()
+                print("[OK] Historial limpiado\n")
+                continue
+
+            # Obtener respuesta
+            response = chatbot.chat(user_input)
+            print(f"\nBienestarBot: {response}\n")
+
+        except KeyboardInterrupt:
+            print("\n\n¡Hasta luego!")
+            break
+        except Exception as e:
+            print(f"\nError: {e}\n")
+
+
 def main():
     """Función principal."""
     parser = argparse.ArgumentParser(
@@ -129,7 +210,7 @@ def main():
     mode_group = parser.add_mutually_exclusive_group(required=True)
     mode_group.add_argument(
         "--mode",
-        choices=["manual", "auto", "scheduled", "status", "insights", "patterns"],
+        choices=["manual", "auto", "scheduled", "status", "insights", "patterns", "chat"],
         help="Modo de ejecución del análisis",
     )
     mode_group.add_argument(
@@ -186,6 +267,8 @@ def main():
             show_insights()
         elif args.mode == "patterns":
             show_patterns()
+        elif args.mode == "chat":
+            run_chatbot()
 
     except KeyboardInterrupt:
         logger.info("Operación cancelada por el usuario")
