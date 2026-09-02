@@ -76,10 +76,12 @@ desktop.ini
 *credentials*
 *secrets*
 *token*
+*.json
 
 # Config files with secrets
 configs/config.yaml
 configs/*.local
+configs/*.json
 
 # Data files (keep structure, ignore actual data for privacy)
 data/raw/*
