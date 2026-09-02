@@ -7,9 +7,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-EXPOSE 8501
+EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8501 || exit 1
-
-CMD ["streamlit", "run", "app/main.py"]
+CMD ["python", "start.py"]
