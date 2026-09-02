@@ -9,6 +9,12 @@ import os
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).parent.parent
+CONFIGS_DIR = PROJECT_ROOT / "configs"
+REPORTS_DIR = PROJECT_ROOT / "reports"
+
+# Asegurar que existan los directorios necesarios
+CONFIGS_DIR.mkdir(exist_ok=True)
+REPORTS_DIR.mkdir(exist_ok=True)
 
 st.set_page_config(
     page_title="Bienestar Psicológico UST",
@@ -229,10 +235,13 @@ st.markdown("""
 
 
 def load_config():
-    config_path = PROJECT_ROOT / "configs" / "config.yaml"
-    if config_path.exists():
-        with open(config_path, "r", encoding="utf-8") as f:
-            return yaml.safe_load(f)
+    config_path = CONFIGS_DIR / "config.yaml"
+    try:
+        if config_path.exists():
+            with open(config_path, "r", encoding="utf-8") as f:
+                return yaml.safe_load(f) or {}
+    except Exception:
+        pass
     return {}
 
 
@@ -401,7 +410,7 @@ def show_dashboard():
     </div>
     """, unsafe_allow_html=True)
 
-    reports_dir = PROJECT_ROOT / "reports"
+    reports_dir = REPORTS_DIR
     dashboards = [f for f in os.listdir(reports_dir) if f.startswith("dashboard_interactivo")] if reports_dir.exists() else []
 
     if dashboards:
@@ -424,20 +433,20 @@ def show_chatbot():
     </div>
     """, unsafe_allow_html=True)
 
-    config_path = PROJECT_ROOT / "configs" / "config.yaml"
+    config_path = CONFIGS_DIR / "config.yaml"
     gemini_configured = False
 
-    if config_path.exists():
-        try:
+    try:
+        if config_path.exists():
             with open(config_path, "r", encoding="utf-8") as f:
-                config = yaml.safe_load(f)
+                config = yaml.safe_load(f) or {}
             api_key = config.get("ai", {}).get("gemini", {}).get("api_key", "")
             if api_key:
                 import google.generativeai as genai
                 genai.configure(api_key=api_key)
                 gemini_configured = True
-        except Exception:
-            pass
+    except Exception:
+        pass
 
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = [{
