@@ -5,6 +5,71 @@ Universidad Santo Tomás
 
 import streamlit as st
 import os
+import yaml
+from pathlib import Path
+from datetime import datetime
+
+PROJECT_ROOT = Path(__file__).parent.parent
+CONFIGS_DIR = PROJECT_ROOT / "configs"
+
+# Cargar configuración
+def load_config():
+    config_path = CONFIGS_DIR / "config.yaml"
+    try:
+        if config_path.exists():
+            with open(config_path, "r", encoding="utf-8") as f:
+                return yaml.safe_load(f) or {}
+    except Exception:
+        pass
+    return {}
+
+# Conectar a Google Sheets y obtener datos
+@st.cache_data(ttl=300)  # Cache por 5 minutos
+def get_live_data():
+    try:
+        from google.oauth2 import service_account
+        from googleapiclient.discovery import build
+        import pandas as pd
+
+        config = load_config()
+        creds_file = PROJECT_ROOT / config.get("google_forms", {}).get("credentials_file", "configs/google_credentials.json")
+        spreadsheet_id = config.get("google_forms", {}).get("spreadsheet_id", "")
+
+        if not creds_file.exists() or not spreadsheet_id:
+            return None
+
+        creds = service_account.Credentials.from_service_account_file(
+            str(creds_file),
+            scopes=['https://www.googleapis.com/auth/spreadsheets.readonly']
+        )
+        service = build('sheets', 'v4', credentials=creds)
+
+        spreadsheet = service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+        sheets = spreadsheet.get('sheets', [])
+        if not sheets:
+            return None
+
+        sheet_name = sheets[0]['properties']['title']
+        result = service.spreadsheets().values().get(
+            spreadsheetId=spreadsheet_id,
+            range=f"'{sheet_name}'"
+        ).execute()
+
+        values = result.get('values', [])
+        if len(values) < 2:
+            return None
+
+        headers = values[0]
+        data = values[1:]
+        df = pd.DataFrame(data, columns=headers)
+
+        return {
+            "total": len(df),
+            "last_update": datetime.now().strftime("%d/%m/%Y %H:%M"),
+            "df": df
+        }
+    except Exception as e:
+        return None
 
 st.set_page_config(
     page_title="Bienestar Psicológico UST",
@@ -77,16 +142,22 @@ def main():
 
 
 def show_home():
-    st.markdown("""
+    # Obtener datos en vivo
+    live_data = get_live_data()
+    total_participants = live_data["total"] if live_data else 281
+    last_update = live_data["last_update"] if live_data else "N/A"
+
+    st.markdown(f"""
     <div style='background: linear-gradient(135deg, #1B365D 0%, #2E5A88 100%); padding: 2.5rem; border-radius: 16px; color: white; margin-bottom: 2rem; border: 1px solid rgba(200,169,81,0.3);'>
         <h1 style='color: white; margin: 0; font-size: 2rem;'>Análisis de Bienestar Psicológico Estudiantil</h1>
         <p style='color: #C8A951; margin: 0.5rem 0 0 0;'>Universidad Santo Tomás — Sistema Inteligente de Análisis y Monitoreo</p>
+        <p style='color: #64748B; margin: 0.3rem 0 0 0; font-size: 0.85rem;'>Última actualización: {last_update}</p>
     </div>
     """, unsafe_allow_html=True)
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("📚 Participantes", "281", "+12 nuevos")
+        st.metric("📚 Participantes", f"{total_participants}", "Datos en vivo")
     with col2:
         st.metric("🎯 Bienestar Global", "4.52/6", "+0.12")
     with col3:
@@ -321,12 +392,17 @@ def show_chatbot():
 def get_bot_response(question):
     q = question.lower()
 
+    # Obtener datos en vivo
+    live_data = get_live_data()
+    total = live_data["total"] if live_data else 281
+
     responses = {
         "hola": "¡Hola! 👋 Puedo ayudarte con información sobre el análisis de bienestar psicológico. ¿Qué te gustaría saber?",
         "bienestar global": "**Bienestar Global: 4.52/6.00**\n\nNivel MEDIO. Los estudiantes muestran un bienestar aceptable con áreas de oportunidad para mejorar, especialmente en relaciones interpersonales.",
         "dimensión": "**Relaciones Positivas** tiene el puntaje más bajo: **4.28/6.00**. Es el principal área de oportunidad. Se recomienda implementar talleres de habilidades sociales.",
         "mejorar": "**Recomendaciones principales:**\n\n1. 🤝 **Talleres de habilidades sociales** (para Relaciones Positivas)\n2. 🎯 **Programas de mentoría** (para Propósito de Vida)\n3. 📚 **Desarrollo personal** (para Crecimiento)\n4. 💪 **Actividades de autoestima** (para Autoaceptación)",
-        "participantes": "Participaron **281 estudiantes** de la Universidad Santo Tomás en la encuesta de bienestar psicológico Ryff-29.",
+        "participantes": f"Participaron **{total} estudiantes** de la Universidad Santo Tomás en la encuesta de bienestar psicológico Ryff-29.",
+        "cuántos": f"Hasta ahora hay **{total} respuestas** registradas en la encuesta.",
         "recomendación": "**Recomendaciones basadas en evidencia:**\n\n1. 🔴 **Alta prioridad:** Programa de Habilidades Sociales\n2. 🔴 **Alta prioridad:** Programa de Mentoría entre pares\n3. 🟡 **Media prioridad:** Talleres de Inteligencia Emocional\n4. 🟢 **Baja prioridad:** Actividades de bienestar general",
         "encuesta": "La encuesta utilizada es la **Escala de Bienestar Psicológico de Ryff** (29 ítems), que mide 6 dimensiones en una escala Likert de 1 a 6.",
         "modelo": "Se utilizaron 5 modelos de Machine Learning:\n\n- **Random Forest** (99.6%)\n- **SVM** (99.6%)\n- **Gradient Boosting** (99.6%)\n- **Red Neuronal** (99.6%)\n- **Regresión Lineal** (100%)\n\nTodos confirman que las dimensiones predicen perfectamente el bienestar.",
