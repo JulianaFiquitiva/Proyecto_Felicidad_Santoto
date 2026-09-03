@@ -72,16 +72,13 @@ coverage.xml
 Thumbs.db
 desktop.ini
 
-# Secrets and credentials
-*credentials*
+# Secrets and credentials (except google service account)
 *secrets*
 *token*
-*.json
 
 # Config files with secrets
 configs/config.yaml
 configs/*.local
-configs/*.json
 
 # Data files (keep structure, ignore actual data for privacy)
 data/raw/*
