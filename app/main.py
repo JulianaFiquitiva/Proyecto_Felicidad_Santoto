@@ -31,18 +31,9 @@ def get_live_data():
         from googleapiclient.discovery import build
         import pandas as pd
 
-        # Valores por defecto (fallback si no hay config)
+        # Valores hardcoded (configuración conocida)
         spreadsheet_id = "1iC5p-Jr9SP8oRxGh8cclNDwNeNvLY_QxCXFtkhCJ2rA"
         creds_file = PROJECT_ROOT / "configs" / "google_credentials.json"
-
-        # Intentar cargar config si existe
-        try:
-            config = load_config()
-            if config:
-                spreadsheet_id = config.get("google_forms", {}).get("spreadsheet_id", spreadsheet_id)
-                creds_file = PROJECT_ROOT / config.get("google_forms", {}).get("credentials_file", "configs/google_credentials.json")
-        except Exception:
-            pass
 
         if not creds_file.exists():
             return None
@@ -78,7 +69,7 @@ def get_live_data():
             "df": df
         }
     except Exception as e:
-        return None
+        return {"error": str(e)}
 
 st.set_page_config(
     page_title="Bienestar Psicológico UST",
@@ -160,13 +151,19 @@ def show_home():
 
     # Obtener datos en vivo
     live_data = get_live_data()
-    total_participants = live_data["total"] if live_data else 281
-    last_update = live_data["last_update"] if live_data else "N/A"
-
-    # Mostrar estado de conexión
-    if live_data:
-        st.success(f"✅ Conectado a Google Sheets — {total_participants} participantes — Última actualización: {last_update}")
+    
+    # Verificar si hay error
+    if live_data and "error" in live_data:
+        total_participants = 281
+        last_update = "N/A"
+        st.error(f"❌ Error de conexión: {live_data['error']}")
+    elif live_data:
+        total_participants = live_data["total"]
+        last_update = live_data["last_update"]
+        st.success(f"✅ Conectado a Google Sheets — {total_participants} participantes")
     else:
+        total_participants = 281
+        last_update = "N/A"
         st.warning("⚠️ Sin conexión a Google Sheets — Mostrando datos de respaldo")
 
     st.markdown(f"""
