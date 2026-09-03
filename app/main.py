@@ -125,14 +125,14 @@ def main():
 
         page = st.radio(
             "Navegación",
-            ["Inicio", "Análisis", "Chatbot", "Resúmenes", "Explicaciones"],
+            ["Inicio", "Dashboard", "Chatbot", "Resúmenes", "Explicaciones"],
             label_visibility="collapsed"
         )
 
     if page == "Inicio":
         show_home()
-    elif page == "Análisis":
-        show_analysis()
+    elif page == "Dashboard":
+        show_dashboard()
     elif page == "Chatbot":
         show_chatbot()
     elif page == "Resúmenes":
@@ -261,94 +261,131 @@ def show_home():
         """, unsafe_allow_html=True)
 
 
-def show_analysis():
+def show_dashboard():
     st.markdown("""
     <div style='background: linear-gradient(135deg, #1B365D 0%, #2E5A88 100%); padding: 2rem; border-radius: 16px; color: white; margin-bottom: 2rem; border: 1px solid rgba(200,169,81,0.3);'>
-        <h1 style='color: white; margin: 0;'>Panel de Análisis</h1>
-        <p style='color: #94A3B8;'>Resultados completos del análisis de bienestar psicológico</p>
+        <h1 style='color: white; margin: 0;'>Dashboard Interactivo</h1>
+        <p style='color: #94A3B8;'>Visualización completa de resultados del análisis</p>
     </div>
     """, unsafe_allow_html=True)
 
-    tab1, tab2, tab3, tab4 = st.tabs(["📊 Dimensiones", "📈 Correlaciones", "👥 Clustering", "🤖 Modelos"])
+    import plotly.express as px
+    import plotly.graph_objects as go
+    import pandas as pd
+
+    # Datos de dimensiones
+    dimensions = {
+        'Dimensión': ['Autoaceptación', 'Propósito de Vida', 'Dominio del Entorno', 'Autonomía', 'Crecimiento Personal', 'Relaciones Positivas'],
+        'Puntuación': [4.68, 4.58, 4.55, 4.52, 4.50, 4.28],
+        'Estado': ['✅ Fortaleza', '✅ Fortaleza', '✅ Fortaleza', '🟡 Aceptable', '🟡 Aceptable', '⚠️ Oportunidad']
+    }
+    df_dims = pd.DataFrame(dimensions)
+
+    # Datos de modelos
+    models = {
+        'Modelo': ['Random Forest', 'SVM', 'Gradient Boosting', 'Red Neuronal', 'Regresión Lineal'],
+        'Precisión': [99.6, 99.6, 99.6, 99.6, 100.0],
+        'AUC-ROC': [0.99, 0.99, 0.99, 0.99, 1.00]
+    }
+    df_models = pd.DataFrame(models)
+
+    # Tabs
+    tab1, tab2, tab3, tab4 = st.tabs(["📊 Dimensiones", "📈 Radar", "🤖 Modelos", "👥 Clustering"])
 
     with tab1:
         st.markdown("### Promedio por Dimensión")
-        st.markdown("""
-        | Dimensión | Puntuación | Estado | Interpretación |
-        |-----------|------------|--------|----------------|
-        | Autoaceptación | 4.68/6.00 | ✅ Fortaleza | Actitud positiva hacia uno mismo |
-        | Propósito de Vida | 4.58/6.00 | ✅ Fortaleza | Sentido y dirección clara |
-        | Dominio del Entorno | 4.55/6.00 | ✅ Fortaleza | Gestión adecuada del entorno |
-        | Autonomía | 4.52/6.00 | 🟡 Aceptable | Independencia en decisiones |
-        | Crecimiento Personal | 4.50/6.00 | 🟡 Aceptable | Desarrollo continuo |
-        | Relaciones Positivas | 4.28/6.00 | ⚠️ Oportunidad | Necesita fortalecimiento |
-        """)
-
-        st.info("**Interpretación:** El bienestar global de 4.52/6.00 indica un nivel MEDIO con áreas claras de oportunidad, especialmente en Relaciones Positivas.")
+        fig_bar = px.bar(
+            df_dims,
+            x='Dimensión',
+            y='Puntuación',
+            color='Estado',
+            color_discrete_map={'✅ Fortaleza': '#22C55E', '🟡 Aceptable': '#F59E0B', '⚠️ Oportunidad': '#EF4444'},
+            title="Puntuación por Dimensión (Escala 1-6)",
+            text='Puntuación'
+        )
+        fig_bar.update_layout(
+            plot_bgcolor='#1A2736',
+            paper_bgcolor='#1A2736',
+            font_color='#94A3B8',
+            xaxis_tickangle=-45
+        )
+        fig_bar.update_traces(texttemplate='%{text:.2f}', textposition='outside')
+        st.plotly_chart(fig_bar, use_container_width=True)
 
     with tab2:
-        st.markdown("### Correlaciones Principales")
-        st.markdown("""
-        | Variable 1 | Variable 2 | Correlación (r) | Fuerza |
-        |------------|------------|-----------------|--------|
-        | Autoaceptación | Crecimiento Personal | 0.72 | Fuerte |
-        | Autonomía | Dominio del Entorno | 0.68 | Moderada-Fuerte |
-        | Propósito de Vida | Autoaceptación | 0.65 | Moderada-Fuerte |
-        | Relaciones Positivas | Crecimiento Personal | 0.61 | Moderada |
-        | Dominio del Entorno | Propósito de Vida | 0.58 | Moderada |
-        """)
-
-        st.info("**Interpretación:** Las dimensiones están interconectadas. Mejorar una puede beneficiar a las demás.")
+        st.markdown("### Perfil de Bienestar (Radar)")
+        fig_radar = go.Figure()
+        fig_radar.add_trace(go.Scatterpolar(
+            r=df_dims['Puntuación'].tolist() + [df_dims['Puntuación'].tolist()[0]],
+            theta=df_dims['Dimensión'].tolist() + [df_dims['Dimensión'].tolist()[0]],
+            fill='toself',
+            fillcolor='rgba(200, 169, 81, 0.3)',
+            line=dict(color='#C8A951', width=2),
+            name='Bienestar'
+        ))
+        fig_radar.update_layout(
+            polar=dict(
+                radialaxis=dict(visible=True, range=[0, 6], gridcolor='#2D3F50'),
+                bgcolor='#1A2736'
+            ),
+            showlegend=False,
+            paper_bgcolor='#1A2736',
+            font_color='#94A3B8',
+            title="Perfil de Bienestar por Dimensión"
+        )
+        st.plotly_chart(fig_radar, use_container_width=True)
 
     with tab3:
-        st.markdown("### Análisis de Clustering")
-        st.markdown("""
-        | Perfil | Porcentaje | Características | Acción Recomendada |
-        |--------|------------|-----------------|---------------------|
-        | **Perfil 1: Bienestar Alto** | 52% | Puntuaciones altas en todas las dimensiones | Mantener estrategias actuales |
-        | **Perfil 2: Bienestar en Desarrollo** | 48% | Áreas específicas de mejora | Intervenciones focalizadas |
-        """)
+        st.markdown("### Resultados de Modelos Predictivos")
+        fig_models = px.bar(
+            df_models,
+            x='Modelo',
+            y='Precisión',
+            title="Precisión por Modelo (%)",
+            color='Modelo',
+            text='Precisión'
+        )
+        fig_models.update_layout(
+            plot_bgcolor='#1A2736',
+            paper_bgcolor='#1A2736',
+            font_color='#94A3B8'
+        )
+        fig_models.update_traces(texttemplate='%{text:.1f}%', textposition='outside')
+        st.plotly_chart(fig_models, use_container_width=True)
+
+        st.markdown("### Tabla de Resultados")
+        st.dataframe(df_models, use_container_width=True, hide_index=True)
+
+    with tab4:
+        st.markdown("### Distribución de Perfiles")
+        fig_pie = px.pie(
+            names=['Bienestar Alto', 'Bienestar en Desarrollo'],
+            values=[52, 48],
+            title="Distribución de Perfiles de Estudiantes",
+            color_discrete_sequence=['#22C55E', '#F59E0B'],
+            hole=0.4
+        )
+        fig_pie.update_layout(
+            paper_bgcolor='#1A2736',
+            font_color='#94A3B8'
+        )
+        st.plotly_chart(fig_pie, use_container_width=True)
 
         col1, col2 = st.columns(2)
         with col1:
             st.markdown("""
-            <div style='background: #1A2736; padding: 1.5rem; border-radius: 10px; border: 1px solid #22C55E;'>
-                <h4 style='color: #22C55E; margin-top: 0;'>✅ Perfil 1: Bienestar Alto (52%)</h4>
-                <ul style='color: #94A3B8; font-size: 0.9rem;'>
-                    <li>Puntuaciones altas en todas las dimensiones</li>
-                    <li>Autoimagen positiva</li>
-                    <li>Relaciones interpersonales saludables</li>
-                    <li>Sentido de propósito claro</li>
-                </ul>
+            <div style='background: #1A2736; padding: 1rem; border-radius: 8px; border: 1px solid #22C55E;'>
+                <h4 style='color: #22C55E; margin-top: 0;'>Perfil 1: Bienestar Alto</h4>
+                <p style='color: #94A3B8; font-size: 0.85rem;'>52% de estudiantes — Puntuaciones altas en todas las dimensiones</p>
             </div>
             """, unsafe_allow_html=True)
-
         with col2:
             st.markdown("""
-            <div style='background: #1A2736; padding: 1.5rem; border-radius: 10px; border: 1px solid #F59E0B;'>
-                <h4 style='color: #F59E0B; margin-top: 0;'>⚠️ Perfil 2: Bienestar en Desarrollo (48%)</h4>
-                <ul style='color: #94A3B8; font-size: 0.9rem;'>
-                    <li>Áreas específicas de mejora</li>
-                    <li>Potencial de crecimiento</li>
-                    <li>Necesidad de apoyo en algunas dimensiones</li>
-                    <li>Receptivos a intervenciones</li>
-                </ul>
+            <div style='background: #1A2736; padding: 1rem; border-radius: 8px; border: 1px solid #F59E0B;'>
+                <h4 style='color: #F59E0B; margin-top: 0;'>Perfil 2: Bienestar en Desarrollo</h4>
+                <p style='color: #94A3B8; font-size: 0.85rem;'>48% de estudiantes — Áreas de mejora específicas</p>
             </div>
             """, unsafe_allow_html=True)
-
-    with tab4:
-        st.markdown("### Resultados de Modelos Predictivos")
-        st.markdown("""
-        | Modelo | Precisión | AUC-ROC | Tiempo | Descripción |
-        |--------|-----------|---------|--------|-------------|
-        | Random Forest | 99.6% | 0.99 | 85ms | Comité de expertos |
-        | SVM (RBF) | 99.6% | 0.99 | 42ms | Separación por hiperplano |
-        | Gradient Boosting | 99.6% | 0.99 | 125ms | Equipo que mejora |
-        | Red Neuronal (MLP) | 99.6% | 0.99 | 95ms | Cerebro artificial |
-        | Regresión Lineal | 100% | 1.00 | 12ms | Predicción perfecta |
-        """)
-
-        st.info("**Interpretación:** Todos los modelos logran precisión excelente (>99%), confirmando que las 6 dimensiones del bienestar son predictores confiables del bienestar global.")
 
 
 def show_chatbot():
@@ -410,9 +447,12 @@ def show_chatbot():
 def get_bot_response(question):
     q = question.lower()
 
-    # Obtener datos en vivo
+    # Obtener datos en vivo (con manejo seguro de errores)
     live_data = get_live_data()
-    total = live_data["total"] if live_data else 281
+    if live_data and "total" in live_data:
+        total = live_data["total"]
+    else:
+        total = 281
 
     responses = {
         "hola": "¡Hola! 👋 Puedo ayudarte con información sobre el análisis de bienestar psicológico. ¿Qué te gustaría saber?",
