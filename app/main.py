@@ -9,6 +9,14 @@ import yaml
 from pathlib import Path
 from datetime import datetime
 
+# Importar plotly para gráficos
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    PLOTLY_AVAILABLE = False
+
 PROJECT_ROOT = Path(__file__).parent.parent
 CONFIGS_DIR = PROJECT_ROOT / "configs"
 
@@ -396,52 +404,46 @@ def show_chatbot():
     </div>
     """, unsafe_allow_html=True)
 
-    if "messages" not in st.session_state:
-        st.session_state.messages = [{
-            "role": "assistant",
-            "content": "¡Hola! Soy **BienestarBot** 🤖. Puedo ayudarte con información sobre el análisis de bienestar psicológico de 281 estudiantes. ¿Qué te gustaría saber?"
-        }]
+    # Inicializar historial
+    if "chat_messages" not in st.session_state:
+        st.session_state.chat_messages = []
 
+    # Preguntas sugeridas
     st.markdown("#### Preguntas Sugeridas")
-    cols = st.columns(4)
-    suggestions = [
-        "¿Cuál es el bienestar global?",
-        "¿Qué dimensión hay que mejorar?",
-        "¿Cuántos estudiantes participaron?",
-        "¿Qué recomendaciones me das?"
-    ]
-    for i, q in enumerate(suggestions):
-        with cols[i]:
-            if st.button(q, key=f"sq_{i}", use_container_width=True):
-                st.session_state.messages.append({"role": "user", "content": q})
-                st.rerun()
+    cols = st.columns(2)
+    with cols[0]:
+        if st.button("¿Cuál es el bienestar global?", use_container_width=True):
+            process_chat("¿Cuál es el bienestar global?")
+    with cols[1]:
+        if st.button("¿Qué dimensión hay que mejorar?", use_container_width=True):
+            process_chat("¿Qué dimensión hay que mejorar?")
+    with cols[0]:
+        if st.button("¿Cuántos estudiantes participaron?", use_container_width=True):
+            process_chat("¿Cuántos estudiantes participaron?")
+    with cols[1]:
+        if st.button("¿Qué recomendaciones me das?", use_container_width=True):
+            process_chat("¿Qué recomendaciones me das?")
 
     st.divider()
 
-    for msg in st.session_state.messages:
+    # Mostrar historial
+    for msg in st.session_state.chat_messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
+    # Input del usuario
     if prompt := st.chat_input("Escribe tu pregunta aquí..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+        process_chat(prompt)
 
-        response = get_bot_response(prompt)
 
-        with st.chat_message("assistant"):
-            st.markdown(response)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+def process_chat(prompt):
+    """Procesa una pregunta del chatbot"""
+    st.session_state.chat_messages.append({"role": "user", "content": prompt})
 
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("🗑️ Limpiar conversación", use_container_width=True):
-            st.session_state.messages = []
-            st.rerun()
-    with col2:
-        if st.button("📥 Exportar conversación", use_container_width=True):
-            chat = "\n\n".join([f"**{m['role'].title()}:** {m['content']}" for m in st.session_state.messages])
-            st.download_button("Descargar", chat, "conversacion_bienestarbot.txt", "text/plain")
+    response = get_bot_response(prompt)
+
+    st.session_state.chat_messages.append({"role": "assistant", "content": response})
+    st.rerun()
 
 
 def get_bot_response(question):
@@ -457,22 +459,30 @@ def get_bot_response(question):
     responses = {
         "hola": "¡Hola! 👋 Puedo ayudarte con información sobre el análisis de bienestar psicológico. ¿Qué te gustaría saber?",
         "bienestar global": "**Bienestar Global: 4.52/6.00**\n\nNivel MEDIO. Los estudiantes muestran un bienestar aceptable con áreas de oportunidad para mejorar, especialmente en relaciones interpersonales.",
-        "dimensión": "**Relaciones Positivas** tiene el puntaje más bajo: **4.28/6.00**. Es el principal área de oportunidad. Se recomienda implementar talleres de habilidades sociales.",
+        "qué dimensión hay que mejorar": "**Relaciones Positivas** tiene el puntaje más bajo: **4.28/6.00**. Es el principal área de oportunidad. Se recomienda implementar talleres de habilidades sociales.",
+        "dimensión": "**Relaciones Positivas** tiene el puntaje más bajo: **4.28/6.00**. Es el principal área de oportunidad.",
         "mejorar": "**Recomendaciones principales:**\n\n1. 🤝 **Talleres de habilidades sociales** (para Relaciones Positivas)\n2. 🎯 **Programas de mentoría** (para Propósito de Vida)\n3. 📚 **Desarrollo personal** (para Crecimiento)\n4. 💪 **Actividades de autoestima** (para Autoaceptación)",
         "participantes": f"Participaron **{total} estudiantes** de la Universidad Santo Tomás en la encuesta de bienestar psicológico Ryff-29.",
         "cuántos": f"Hasta ahora hay **{total} respuestas** registradas en la encuesta.",
+        "¿qué recomendaciones me das": "**Recomendaciones basadas en evidencia:**\n\n1. 🔴 **Alta prioridad:** Programa de Habilidades Sociales\n2. 🔴 **Alta prioridad:** Programa de Mentoría entre pares\n3. 🟡 **Media prioridad:** Talleres de Inteligencia Emocional\n4. 🟢 **Baja prioridad:** Actividades de bienestar general",
         "recomendación": "**Recomendaciones basadas en evidencia:**\n\n1. 🔴 **Alta prioridad:** Programa de Habilidades Sociales\n2. 🔴 **Alta prioridad:** Programa de Mentoría entre pares\n3. 🟡 **Media prioridad:** Talleres de Inteligencia Emocional\n4. 🟢 **Baja prioridad:** Actividades de bienestar general",
         "encuesta": "La encuesta utilizada es la **Escala de Bienestar Psicológico de Ryff** (29 ítems), que mide 6 dimensiones en una escala Likert de 1 a 6.",
         "modelo": "Se utilizaron 5 modelos de Machine Learning:\n\n- **Random Forest** (99.6%)\n- **SVM** (99.6%)\n- **Gradient Boosting** (99.6%)\n- **Red Neuronal** (99.6%)\n- **Regresión Lineal** (100%)\n\nTodos confirman que las dimensiones predicen perfectamente el bienestar.",
         "cluster": "**2 perfiles identificados:**\n\n- **Perfil 1 (52%):** Bienestar alto en todas las dimensiones\n- **Perfil 2 (48%):** Bienestar en desarrollo con áreas de mejora",
-        "correlación": "**Correlaciones más fuertes:**\n\n- Autoaceptación ↔ Crecimiento: **r = 0.72** (Fuerte)\n- Autonomía ↔ Dominio: **r = 0.68** (Moderada-Fuerte)\n- Propósito ↔ Autoaceptación: **r = 0.65** (Moderada-Fuerte)"
+        "correlación": "**Correlaciones más fuertes:**\n\n- Autoaceptación ↔ Crecimiento: **r = 0.72** (Fuerte)\n- Autonomía ↔ Dominio: **r = 0.68** (Moderada-Fuerte)\n- Propósito ↔ Autoaceptación: **r = 0.65** (Moderada-Fuerte)",
+        "autoaceptación": "**Autoaceptación: 4.68/6.00** ✅\n\nEs la dimensión con mayor puntuación. Los estudiantes tienen una actitud positiva hacia uno mismo.",
+        "relaciones": "**Relaciones Positivas: 4.28/6.00** ⚠️\n\nEs la dimensión con menor puntuación. Se necesita fortalecer las habilidades sociales.",
+        "autonomía": "**Autonomía: 4.52/6.00** 🟡\n\nLos estudiantes muestran independencia en sus decisiones.",
+        "propósito": "**Propósito de Vida: 4.58/6.00** ✅\n\nLos estudiantes tienen sentido y dirección clara en su vida.",
+        "crecimiento": "**Crecimiento Personal: 4.50/6.00** 🟡\n\nLos estudiantes muestran interés por aprender y crecer.",
+        "dominio": "**Dominio del Entorno: 4.55/6.00** ✅\n\nLos estudiantes manejan adecuadamente su entorno.",
     }
 
     for key, resp in responses.items():
         if key in q:
             return resp
 
-    return f"Entiendo tu pregunta: **{question}**. Puedo ayudarte con información sobre bienestar global, dimensiones, clustering, modelos predictivos o recomendaciones. ¿Qué aspecto te interesa?"
+    return f"Entiendo tu pregunta: **{question}**. Puedo ayudarte con información sobre bienestar global, dimensiones (autoaceptación, relaciones, autonomía, propósito, crecimiento, dominio), clustering o recomendaciones. ¿Qué aspecto te interesa?"
 
 
 def show_summaries():
