@@ -128,7 +128,7 @@ email:
   smtp_server: "smtp.gmail.com"
   smtp_port: 587
   sender_email: "julkarem03@gmail.com"
-  sender_password: "twukmeowxxnnpobo"  # Contraseña de aplicación Gmail
+  sender_password: "etrviufdqbrmhcfs"
   recipients:
     - "julkarem03@gmail.com"
     - "luisa.martinezr17@gmail.com"
@@ -144,8 +144,8 @@ orchestrator:
   # Frecuencia de verificación automática (en minutos)
   check_interval_minutes: 30
   
-  # Horario de ejecución automática (si se usa schedule)
-  schedule_time: "08:00"
+  # Horario de ejecución automática (ejecución nocturna)
+  schedule_time: "22:00"
   
   # Guardar histórico de resultados
   save_history: true
