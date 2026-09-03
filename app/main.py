@@ -31,11 +31,20 @@ def get_live_data():
         from googleapiclient.discovery import build
         import pandas as pd
 
-        config = load_config()
-        creds_file = PROJECT_ROOT / config.get("google_forms", {}).get("credentials_file", "configs/google_credentials.json")
-        spreadsheet_id = config.get("google_forms", {}).get("spreadsheet_id", "")
+        # Valores por defecto (fallback si no hay config)
+        spreadsheet_id = "1iC5p-Jr9SP8oRxGh8cclNDwNeNvLY_QxCXFtkhCJ2rA"
+        creds_file = PROJECT_ROOT / "configs" / "google_credentials.json"
 
-        if not creds_file.exists() or not spreadsheet_id:
+        # Intentar cargar config si existe
+        try:
+            config = load_config()
+            if config:
+                spreadsheet_id = config.get("google_forms", {}).get("spreadsheet_id", spreadsheet_id)
+                creds_file = PROJECT_ROOT / config.get("google_forms", {}).get("credentials_file", "configs/google_credentials.json")
+        except Exception:
+            pass
+
+        if not creds_file.exists():
             return None
 
         creds = service_account.Credentials.from_service_account_file(
@@ -142,16 +151,28 @@ def main():
 
 
 def show_home():
+    # Botón de actualización
+    col_header1, col_header2 = st.columns([4, 1])
+    with col_header2:
+        if st.button("🔄 Actualizar datos", use_container_width=True):
+            st.cache_data.clear()
+            st.rerun()
+
     # Obtener datos en vivo
     live_data = get_live_data()
     total_participants = live_data["total"] if live_data else 281
     last_update = live_data["last_update"] if live_data else "N/A"
 
+    # Mostrar estado de conexión
+    if live_data:
+        st.success(f"✅ Conectado a Google Sheets — {total_participants} participantes — Última actualización: {last_update}")
+    else:
+        st.warning("⚠️ Sin conexión a Google Sheets — Mostrando datos de respaldo")
+
     st.markdown(f"""
     <div style='background: linear-gradient(135deg, #1B365D 0%, #2E5A88 100%); padding: 2.5rem; border-radius: 16px; color: white; margin-bottom: 2rem; border: 1px solid rgba(200,169,81,0.3);'>
         <h1 style='color: white; margin: 0; font-size: 2rem;'>Análisis de Bienestar Psicológico Estudiantil</h1>
         <p style='color: #C8A951; margin: 0.5rem 0 0 0;'>Universidad Santo Tomás — Sistema Inteligente de Análisis y Monitoreo</p>
-        <p style='color: #64748B; margin: 0.3rem 0 0 0; font-size: 0.85rem;'>Última actualización: {last_update}</p>
     </div>
     """, unsafe_allow_html=True)
 
